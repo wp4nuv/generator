@@ -1,22 +1,22 @@
 
-var assert = require('assert')
-var AppRunner = require('./support/app-runner')
-var exec = require('child_process').exec
-var fs = require('fs')
-var mkdirp = require('mkdirp')
-var path = require('path')
-var request = require('supertest')
-var rimraf = require('rimraf')
-var spawn = require('child_process').spawn
-var utils = require('./support/utils')
-var validateNpmName = require('validate-npm-package-name')
+const assert = require('assert')
+const AppRunner = require('./support/app-runner')
+const exec = require('child_process').exec
+const fs = require('fs')
+const mkdirp = require('mkdirp')
+const path = require('path')
+const request = require('supertest')
+const rimraf = require('rimraf')
+const spawn = require('child_process').spawn
+const utils = require('./support/utils')
+const validateNpmName = require('validate-npm-package-name')
 
-var APP_START_STOP_TIMEOUT = 10000
-var PKG_PATH = path.resolve(__dirname, '..', 'package.json')
-var BIN_PATH = path.resolve(path.dirname(PKG_PATH), require(PKG_PATH).bin.express)
-var NPM_INSTALL_TIMEOUT = 300000 // 5 minutes
-var STDERR_MAX_BUFFER = 5 * 1024 * 1024 // 5mb
-var TEMP_DIR = utils.tmpDir()
+const APP_START_STOP_TIMEOUT = 10000
+const PKG_PATH = path.resolve(__dirname, '..', 'package.json')
+const BIN_PATH = path.resolve(path.dirname(PKG_PATH), require(PKG_PATH).bin.express)
+const NPM_INSTALL_TIMEOUT = 300000 // 5 minutes
+const STDERR_MAX_BUFFER = 5 * 1024 * 1024 // 5mb
+const TEMP_DIR = utils.tmpDir()
 
 describe('express(1)', function () {
   after(function (done) {
@@ -25,7 +25,7 @@ describe('express(1)', function () {
   })
 
   describe('(no args)', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app', function (done) {
       run(ctx.dir, [], function (err, stdout, warnings) {
@@ -38,12 +38,6 @@ describe('express(1)', function () {
       })
     })
 
-    it('should print jade view warning', function () {
-      assert.ok(ctx.warnings.some(function (warn) {
-        return warn === 'the default view engine will not be jade in future releases\nuse `--view=jade\' or `--help\' for additional options'
-      }))
-    })
-
     it('should provide debug instructions', function () {
       assert.ok(/DEBUG=express-1-no-args:\* (?:& )?npm start/.test(ctx.stdout))
     })
@@ -52,12 +46,6 @@ describe('express(1)', function () {
       assert.notStrictEqual(ctx.files.indexOf('bin/www'), -1)
       assert.notStrictEqual(ctx.files.indexOf('app.js'), -1)
       assert.notStrictEqual(ctx.files.indexOf('package.json'), -1)
-    })
-
-    it('should have jade templates', function () {
-      assert.notStrictEqual(ctx.files.indexOf('views/error.jade'), -1)
-      assert.notStrictEqual(ctx.files.indexOf('views/index.jade'), -1)
-      assert.notStrictEqual(ctx.files.indexOf('views/layout.jade'), -1)
     })
 
     it('should have a package.json file', function () {
@@ -71,12 +59,11 @@ describe('express(1)', function () {
         '    "start": "node ./bin/www"\n' +
         '  },\n' +
         '  "dependencies": {\n' +
-        '    "cookie-parser": "~1.4.5",\n' +
-        '    "debug": "~2.6.9",\n' +
-        '    "express": "~4.17.1",\n' +
-        '    "http-errors": "~1.7.2",\n' +
-        '    "jade": "~1.11.0",\n' +
-        '    "morgan": "~1.10.0"\n' +
+        '    "cookie-parser": "~1.4.7",\n' +
+        '    "debug": "~4.4.1",\n' +
+        '    "express": "~5.1.0",\n' +
+        '    "http-errors": "~2.0.0",\n' +
+        '    "morgan": "~1.10.1"\n' +
         '  }\n' +
         '}\n')
     })
@@ -122,7 +109,7 @@ describe('express(1)', function () {
     })
 
     describe('when directory contains spaces', function () {
-      var ctx0 = setupTestEnvironment('foo bar (BAZ!)')
+      let ctx0 = setupTestEnvironment('foo bar (BAZ!)')
 
       it('should create basic app', function (done) {
         run(ctx0.dir, [], function (err, output) {
@@ -133,16 +120,16 @@ describe('express(1)', function () {
       })
 
       it('should have a valid npm package name', function () {
-        var file = path.resolve(ctx0.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var name = JSON.parse(contents).name
+        let file = path.resolve(ctx0.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let name = JSON.parse(contents).name
         assert.ok(validateNpmName(name).validForNewPackages, 'package name "' + name + '" is valid')
         assert.strictEqual(name, 'foo-bar-baz')
       })
     })
 
     describe('when directory is not a valid name', function () {
-      var ctx1 = setupTestEnvironment('_')
+      let ctx1 = setupTestEnvironment('_')
 
       it('should create basic app', function (done) {
         run(ctx1.dir, [], function (err, output) {
@@ -153,9 +140,9 @@ describe('express(1)', function () {
       })
 
       it('should default to name "hello-world"', function () {
-        var file = path.resolve(ctx1.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var name = JSON.parse(contents).name
+        let file = path.resolve(ctx1.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let name = JSON.parse(contents).name
         assert.ok(validateNpmName(name).validForNewPackages)
         assert.strictEqual(name, 'hello-world')
       })
@@ -163,7 +150,7 @@ describe('express(1)', function () {
   })
 
   describe('(unknown args)', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should exit with code 1', function (done) {
       runRaw(ctx.dir, ['--foo'], function (err, code, stdout, stderr) {
@@ -194,7 +181,7 @@ describe('express(1)', function () {
   })
 
   describe('<dir>', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app in directory', function (done) {
       runRaw(ctx.dir, ['foo'], function (err, code, stdout, stderr) {
@@ -234,7 +221,7 @@ describe('express(1)', function () {
 
   describe('--css <engine>', function () {
     describe('(no engine)', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should exit with code 1', function (done) {
         runRaw(ctx.dir, ['--css'], function (err, code, stdout, stderr) {
@@ -264,7 +251,7 @@ describe('express(1)', function () {
     })
 
     describe('less', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with less files', function (done) {
         run(ctx.dir, ['--css', 'less'], function (err, stdout) {
@@ -286,9 +273,9 @@ describe('express(1)', function () {
       })
 
       it('should have less-middleware in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var pkg = JSON.parse(contents)
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let  pkg = JSON.parse(contents)
         assert.strictEqual(typeof pkg.dependencies['less-middleware'], 'string')
       })
 
@@ -349,9 +336,9 @@ describe('express(1)', function () {
       })
 
       it('should have node-sass-middleware in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var pkg = JSON.parse(contents)
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let pkg = JSON.parse(contents)
         assert.strictEqual(typeof pkg.dependencies['node-sass-middleware'], 'string')
       })
 
@@ -390,7 +377,7 @@ describe('express(1)', function () {
     })
 
     describe('stylus', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with stylus files', function (done) {
         run(ctx.dir, ['--css', 'stylus'], function (err, stdout) {
@@ -454,7 +441,7 @@ describe('express(1)', function () {
   })
 
   describe('--ejs', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app with ejs templates', function (done) {
       run(ctx.dir, ['--ejs'], function (err, stdout, warnings) {
@@ -485,7 +472,7 @@ describe('express(1)', function () {
   })
 
   describe('--git', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app with git files', function (done) {
       run(ctx.dir, ['--git'], function (err, stdout) {
@@ -514,7 +501,7 @@ describe('express(1)', function () {
   })
 
   describe('-h', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should print usage', function (done) {
       run(ctx.dir, ['-h'], function (err, stdout) {
@@ -530,7 +517,7 @@ describe('express(1)', function () {
   })
 
   describe('--hbs', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app with hbs templates', function (done) {
       run(ctx.dir, ['--hbs'], function (err, stdout, warnings) {
@@ -555,9 +542,9 @@ describe('express(1)', function () {
     })
 
     it('should have hbs in package dependencies', function () {
-      var file = path.resolve(ctx.dir, 'package.json')
-      var contents = fs.readFileSync(file, 'utf8')
-      var dependencies = JSON.parse(contents).dependencies
+      let file = path.resolve(ctx.dir, 'package.json')
+      let contents = fs.readFileSync(file, 'utf8')
+      let dependencies = JSON.parse(contents).dependencies
       assert.ok(typeof dependencies.hbs === 'string')
     })
 
@@ -569,7 +556,7 @@ describe('express(1)', function () {
   })
 
   describe('--help', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should print usage', function (done) {
       run(ctx.dir, ['--help'], function (err, stdout) {
@@ -585,7 +572,7 @@ describe('express(1)', function () {
   })
 
   describe('--hogan', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app with hogan templates', function (done) {
       run(ctx.dir, ['--hogan'], function (err, stdout, warnings) {
@@ -610,9 +597,9 @@ describe('express(1)', function () {
     })
 
     it('should have hjs in package dependencies', function () {
-      var file = path.resolve(ctx.dir, 'package.json')
-      var contents = fs.readFileSync(file, 'utf8')
-      var dependencies = JSON.parse(contents).dependencies
+      let file = path.resolve(ctx.dir, 'package.json')
+      let contents = fs.readFileSync(file, 'utf8')
+      let dependencies = JSON.parse(contents).dependencies
       assert.ok(typeof dependencies.hjs === 'string')
     })
 
@@ -623,7 +610,7 @@ describe('express(1)', function () {
   })
 
   describe('--no-view', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app without view engine', function (done) {
       run(ctx.dir, ['--no-view'], function (err, stdout) {
@@ -679,7 +666,7 @@ describe('express(1)', function () {
   })
 
   describe('--pug', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should create basic app with pug templates', function (done) {
       run(ctx.dir, ['--pug'], function (err, stdout, warnings) {
@@ -718,11 +705,11 @@ describe('express(1)', function () {
   })
 
   describe('--version', function () {
-    var ctx = setupTestEnvironment(this.fullTitle())
+    let ctx = setupTestEnvironment(this.fullTitle())
 
     it('should print version', function (done) {
-      var pkg = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8')
-      var ver = JSON.parse(pkg).version
+      let pkg = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8')
+      let ver = JSON.parse(pkg).version
       run(ctx.dir, ['--version'], function (err, stdout) {
         if (err) return done(err)
         assert.strictEqual(stdout.replace(/[\r\n]+/, '\n'), ver + '\n')
@@ -733,7 +720,7 @@ describe('express(1)', function () {
 
   describe('--view <engine>', function () {
     describe('(no engine)', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should exit with code 1', function (done) {
         runRaw(ctx.dir, ['--view'], function (err, code, stdout, stderr) {
@@ -763,7 +750,7 @@ describe('express(1)', function () {
     })
 
     describe('dust', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with dust templates', function (done) {
         run(ctx.dir, ['--view', 'dust'], function (err, stdout) {
@@ -786,9 +773,9 @@ describe('express(1)', function () {
       })
 
       it('should have adaro in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var pkg = JSON.parse(contents)
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let pkg = JSON.parse(contents)
         assert.strictEqual(typeof pkg.dependencies.adaro, 'string')
       })
 
@@ -827,7 +814,7 @@ describe('express(1)', function () {
     })
 
     describe('ejs', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with ejs templates', function (done) {
         run(ctx.dir, ['--view', 'ejs'], function (err, stdout) {
@@ -909,9 +896,9 @@ describe('express(1)', function () {
       })
 
       it('should have hbs in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var dependencies = JSON.parse(contents).dependencies
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let dependencies = JSON.parse(contents).dependencies
         assert.ok(typeof dependencies.hbs === 'string')
       })
 
@@ -956,7 +943,7 @@ describe('express(1)', function () {
     })
 
     describe('hjs', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with hogan templates', function (done) {
         run(ctx.dir, ['--view', 'hjs'], function (err, stdout) {
@@ -974,9 +961,9 @@ describe('express(1)', function () {
       })
 
       it('should have hjs in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var dependencies = JSON.parse(contents).dependencies
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let dependencies = JSON.parse(contents).dependencies
         assert.ok(typeof dependencies.hjs === 'string')
       })
 
@@ -1020,7 +1007,7 @@ describe('express(1)', function () {
     })
 
     describe('pug', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with pug templates', function (done) {
         run(ctx.dir, ['--view', 'pug'], function (err, stdout) {
@@ -1038,9 +1025,9 @@ describe('express(1)', function () {
       })
 
       it('should have pug in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var dependencies = JSON.parse(contents).dependencies
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let dependencies = JSON.parse(contents).dependencies
         assert.ok(typeof dependencies.pug === 'string')
       })
 
@@ -1085,7 +1072,7 @@ describe('express(1)', function () {
     })
 
     describe('twig', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with twig templates', function (done) {
         run(ctx.dir, ['--view', 'twig'], function (err, stdout) {
@@ -1103,9 +1090,9 @@ describe('express(1)', function () {
       })
 
       it('should have twig in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var dependencies = JSON.parse(contents).dependencies
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let dependencies = JSON.parse(contents).dependencies
         assert.ok(typeof dependencies.twig === 'string')
       })
 
@@ -1150,7 +1137,7 @@ describe('express(1)', function () {
     })
 
     describe('vash', function () {
-      var ctx = setupTestEnvironment(this.fullTitle())
+      let ctx = setupTestEnvironment(this.fullTitle())
 
       it('should create basic app with vash templates', function (done) {
         run(ctx.dir, ['--view', 'vash'], function (err, stdout) {
@@ -1168,9 +1155,9 @@ describe('express(1)', function () {
       })
 
       it('should have vash in package dependencies', function () {
-        var file = path.resolve(ctx.dir, 'package.json')
-        var contents = fs.readFileSync(file, 'utf8')
-        var dependencies = JSON.parse(contents).dependencies
+        let file = path.resolve(ctx.dir, 'package.json')
+        let contents = fs.readFileSync(file, 'utf8')
+        let dependencies = JSON.parse(contents).dependencies
         assert.ok(typeof dependencies.vash === 'string')
       })
 
@@ -1217,7 +1204,7 @@ describe('express(1)', function () {
 })
 
 function npmInstall (dir, callback) {
-  var env = utils.childEnvironment()
+  let env = utils.childEnvironment()
 
   exec('npm install', { cwd: dir, env: env, maxBuffer: STDERR_MAX_BUFFER }, function (err, stderr) {
     if (err) {
@@ -1250,10 +1237,10 @@ function run (dir, args, callback) {
 }
 
 function runRaw (dir, args, callback) {
-  var argv = [BIN_PATH].concat(args)
-  var binp = process.argv[0]
-  var stderr = ''
-  var stdout = ''
+  let argv = [BIN_PATH].concat(args)
+  let binp = process.argv[0]
+  let stderr = ''
+  let stdout = ''
 
   var child = spawn(binp, argv, {
     cwd: dir
@@ -1277,7 +1264,7 @@ function runRaw (dir, args, callback) {
 }
 
 function setupTestEnvironment (name) {
-  var ctx = {}
+  let ctx = {}
 
   before('create environment', function (done) {
     ctx.dir = path.join(TEMP_DIR, name.replace(/[<>]/g, ''))

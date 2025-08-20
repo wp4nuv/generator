@@ -32,6 +32,7 @@
     "mkdirp": "^3.0.1",
     "sorted-object": "^2.0.1"
   },
+  "type": "module",
   "main": "bin/express-cli.js",
   "preferGlobal": true,
   "bin": {
