@@ -82,7 +82,7 @@ install:
       }
   # Install Node.js modules
   - npm install
-build: off
+build: false
 test_script:
   # Output version data
   - ps: |
